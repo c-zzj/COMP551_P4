@@ -1,18 +1,15 @@
-from data import *
-import torch.nn as nn
-from torch.nn import Module, CrossEntropyLoss, functional
-from torch.optim import SGD, Optimizer, Adam
+from typing import Callable, Dict
+
+from torch import device
+from torch.nn import Module, CrossEntropyLoss
+from torch.optim import SGD, Optimizer
 from torch.utils.data import DataLoader
-from torch import device, Tensor
-import torch
-from pathlib import Path
-import pandas as pd
-import matplotlib.pyplot as plt
-import cv2
 from torch.utils.data import random_split
 
+from data import *
+
 TrainingPlugin = Callable[[Any, int], None]
-Metric = Callable[[Any, DataLoader], float] # pred, true -> result. The higher the better
+Metric = Callable[[Any, DataLoader], float]  # pred, true -> result. The higher the better
 
 
 class Function:
@@ -34,6 +31,7 @@ class Classifier:
     """
     Abstract Classifier
     """
+
     def __init__(self,
                  training_l: LabeledDataset,
                  validation: LabeledDataset,
@@ -54,7 +52,7 @@ class Classifier:
         """
         proportion_to_check = int(proportion * len(self.training_l))
         t, _ = random_split(self.training_l, [proportion_to_check, len(self.training_l) - proportion_to_check])
-        loader = DataLoader(self.training_l, batch_size=batch_size, shuffle=False)
+        loader = DataLoader(t, batch_size=batch_size, shuffle=False)
         return metric(self, loader)
 
     def val_performance(self, metric: Metric, batch_size=300):
@@ -82,7 +80,7 @@ class Classifier:
 
 class OptimizerProfile:
     def __init__(self, optimizer: Callable[..., Optimizer],
-                      parameters: Dict[str, Any] = {}):
+                 parameters: Dict[str, Any] = {}):
         self.optim = optimizer
         self.params = parameters
 
@@ -91,6 +89,7 @@ class NNClassifier(Classifier):
     """
     Abstract Network Classifier
     """
+
     def __init__(self,
                  network: Callable[..., Module],
                  training_l: LabeledDataset,
@@ -122,6 +121,8 @@ class NNClassifier(Classifier):
         :return: a network callable that can be passed to the NNClassifier constructor
         """
         self.network.load_state_dict(torch.load(folder_path / f"{epoch}.params"))
+        if (folder_path / "performance.pt").exists():
+            self._tmp['learning_path'] = torch.load(folder_path / "performance.pt")
 
     def set_optimizer(self, optimizer: OptimizerProfile):
         self.optim = optimizer.optim(self.network.parameters(), **optimizer.params)
@@ -135,7 +136,7 @@ class NNClassifier(Classifier):
               shuffle: bool = True,
               start_epoch: int = 1,
               plugins: Optional[List[TrainingPlugin]] = None,
-              verbose: bool = True)\
+              verbose: bool = True) \
             -> None:
         """
         Train the model up to the epochs given.
@@ -183,7 +184,7 @@ class NNClassifier(Classifier):
                 print(s, end='')
                 for plugin in plugins:
                     plugin(self, epoch)
-                self.training_message = '' # reset training message
+                self.training_message = ''  # reset training message
         if verbose:
             s = f"\nFinished training all {epochs} epochs."
             self.training_message = s

@@ -1,5 +1,6 @@
 from classifier import *
 from timeit import default_timer as timer
+from matplotlib import pyplot as plt
 
 
 def save_model(folder_path: Path, save_last: bool = False, step: int = 1) -> TrainingPlugin:
@@ -15,8 +16,38 @@ def save_model(folder_path: Path, save_last: bool = False, step: int = 1) -> Tra
         if epoch % step == 0:
             torch.save(clf.network.state_dict(), str(folder_path / f"{epoch}.params"))
             if save_last:
-                if Path(folder_path / f"{epoch-1}.params").exists():
-                    Path.unlink(Path(folder_path / f"{epoch-1}.params"))
+                if Path(folder_path / f"{epoch - 1}.params").exists():
+                    Path.unlink(Path(folder_path / f"{epoch - 1}.params"))
+    return plugin
+
+
+def save_good_models(folder_path: Path, tolerance=0.01, step: int = 1) -> TrainingPlugin:
+    """
+    :param folder_path: the path of the folder to save the model
+    :param step: step size of epochs to activate the plugin
+    :return: a plugin that saves the model after each step
+    """
+    if not folder_path.exists():
+        folder_path.mkdir(parents=True)
+
+    def plugin(clf: NNClassifier, epoch: int) -> None:
+        if epoch % step == 0:
+            if epoch != 1:
+                e = clf._tmp['learning_path']['epochs']
+                val = clf._tmp['learning_path']['val']
+                indices_to_remove = []
+                best = max(val)
+                for i in range(len(val)):
+                    if abs(val[i] - best) >= tolerance:
+                        indices_to_remove.append(i)
+
+                to_remove = [e[j] for j in indices_to_remove]
+                for k in to_remove:
+                    if Path(folder_path / f"{k}.params").exists():
+                        Path.unlink(Path(folder_path / f"{k}.params"))
+
+            torch.save(clf.network.state_dict(), str(folder_path / f"{epoch}.params"))
+
     return plugin
 
 
@@ -193,7 +224,7 @@ def plot_train_val_performance(folder_path: Path,
                      label="training", alpha=0.5)
             plt.plot(epochs, val_performances,
                      label="validation", alpha=0.5)
-            #plt.ylim(top=1, bottom=0.9)
+            # plt.ylim(top=1, bottom=0.9)
             plt.xlabel('Number of epochs')
             plt.ylabel('Accuracy')
             plt.title(title)
@@ -201,8 +232,8 @@ def plot_train_val_performance(folder_path: Path,
             if save:
                 plt.savefig(folder_path / f'{epoch} epochs.jpg')
                 # delete previous plot
-                if Path(folder_path / f'{epoch-step} epochs.jpg').exists():
-                    Path.unlink(Path(folder_path / f'{epoch-step} epochs.jpg'))
+                if Path(folder_path / f'{epoch - step} epochs.jpg').exists():
+                    Path.unlink(Path(folder_path / f'{epoch - step} epochs.jpg'))
             if show:
                 plt.show()
             plt.close('all')
