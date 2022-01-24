@@ -10,8 +10,8 @@ to **Yuyan Chen**, **Ing Tian**, and **Zijun Zhao**, without whom this project c
 ## Brief
 
 In this project, we investigate the effects of a family of activation functions `ACON` proposed in
-this [paper](https://arxiv.org/abs/2009.04759). Concretely, we explore the effects of `ACON` and `Meta-ACON` with
-respect to `ReLU` in various experimental setups. For example, we have tested the performance of `ACON`, `Meta ACON`,
+this [paper](https://arxiv.org/abs/2009.04759). Concretely, we explore the effects of `ACON-C` and `Meta-ACON` with
+respect to `ReLU` in various experimental setups. For example, we have tested the performance of `ACON-C`, `Meta ACON`,
 and `ReLU` for variants of `VGG16` on the `CIFAR-100` datset.
 
 ---
@@ -47,7 +47,7 @@ and `ReLU` for variants of `VGG16` on the `CIFAR-100` datset.
 └── p4.ipynb
 ```
 
-`acon.py` contains the activation functions `ACON` and `MetaACON` we wish to investigate in this experiment. Inside the `classifier` folder, we
+`acon.py` contains the activation functions `ACON-C` and `MetaACON` we wish to investigate in this experiment. Inside the `classifier` folder, we
 have defined various models spanning from *VGG*, *AlexNet*, *ShuffleNet*, and *ResNet*. Also, some common utils
 pertaining to these models are defined in `classifier/__init__.py`, `classifier/metric.py`, and `classifier/plugin.py`.
 Next, the `data` folder contains utils related to dataset processing. Finally. we have provided a sample `p4.ipynb` to
