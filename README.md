@@ -1,4 +1,4 @@
-* This is forked from the original repo at https://github.com/IngTian/COMP551_P4
+* This repository is forked from [the original repo](https://github.com/IngTian/COMP551_P4).
 
 ## Acknowledgements
 
